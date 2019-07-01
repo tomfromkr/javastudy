@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.co.javastudy.mapper.BoardMapper">
+	<resultMap id="boardMap" type="board">
+		<result column="no" property="no" />
+		<result column="writer" property="writer" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="reg_date" property="regDate" />
+		<collection column="no" select="selectCommentByBoardNo" property="commentList">
+		</collection>
+	</resultMap>
+	
+	<resultMap id="commentMap" type="comment">
+		<result column="comment_no" property="commentNo" />
+		<result column="no" property="no" />
+		<result column="writer" property="writer" />
+		<result column="content" property="content" />
+		<result column="reg_date" property="regDate" />
+	</resultMap>
+
+	<select id="selectBoard" resultMap="boardMap">
+		select * 
+		  from tb_board
+		 order by no desc
+	</select>
+	
+	<select id="selectBoardByNo" parameterType="int" resultMap="boardMap">
+		select *
+		  from tb_board
+		 where no = #{no}
+	</select>
+	
+	<insert id="insertBoard" parameterType="board">
+		insert into tb_board(title,content,writer)
+		values(#{title},#{content},#{writer})
+	</insert>
+	
+	<delete id="deleteBoard" parameterType="int">
+		delete 
+		  from tb_board
+		 where no = #{no}
+	</delete>
+	
+	<update id="updateBoard" parameterType="board">
+		update tb_board
+		   set content = #{content},
+		       title = #{title}
+		 where no = #{no}
+	</update>
+	
+	<!-- 댓글 -->
+	<select id="selectCommentByBoardNo" parameterType="int" resultMap="commentMap">
+		select *
+		  from tb_comment
+		 where no = #{no}
+	</select>
+	
+	<!-- 댓글 목록 -->
+	<select id="selectCommentsByNo" parameterType="int" resultMap="commentMap">
+	    select *
+	      from tb_comment
+	     where no = #{no}
+	     order by comment_no 
+	</select>	
+	
+	<!--  댓글 등록  -->
+	<insert id="insertComment" parameterType="comment">
+		insert into tb_comment(
+			no, writer, content
+		) values (
+			#{no}, #{writer}, #{content}
+		)
+		<selectKey resultType="hashmap" keyProperty="commentNo,regDate" order="AFTER">
+    		    select comment_no as commentNo, reg_date as regDate
+    	  		  from tb_comment
+    	  		 where comment_no = (select max(comment_no)
+    	  							   from tb_comment)
+    	</selectKey>
+	</insert>
+	
+	<!--  댓글 삭제  -->
+	<delete id="deleteComment" parameterType="int">
+	    delete 
+	      from tb_comment
+	     where comment_no = #{commentNo}
+	</delete>
+	
+	<!--  댓글 수정  -->
+	<update id="updateComment" parameterType="comment">
+	    update tb_comment
+	       set content = #{content},
+	           reg_date = now()
+	     where comment_no = #{commentNo}
+	     <selectKey resultType="hashmap" keyProperty="regDate" order="AFTER">
+    		    select reg_date as regDate
+    	  		  from tb_comment
+    	  		 where comment_no = #{commentNo}
+    	</selectKey>
+	</update>
+	
+</mapper>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
